@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
+const mongoose = require('mongoose')
 
 
 const app = express()
@@ -17,30 +18,54 @@ const generateId = () => {
 	return maxId + 1
 }
 
-let notes = [
-	{
-		id: 1,
-		content: "HTML is easy",
-		important: true
-	},
-	{
-		id: 2,
-		content: "Browser can execute only JavaScript",
-		important: false
-	},
-	{
-		id: 3,
-		content: "GET and POST are the most important methods of HTTP protocol",
-		important: true
+//let notes = [
+//	{
+//		id: 1,
+//		content: "HTML is easy",
+//		important: true
+//	},
+//	{
+//		id: 2,
+//		content: "Browser can execute only JavaScript",
+//		important: false
+//	},
+//	{
+//		id: 3,
+//		content: "GET and POST are the most important methods of HTTP protocol",
+//		important: true
+//	}
+//]
+
+const password = "RguBKRFtkBt23Vgp"
+const url =
+	`mongodb+srv://fullstack:${password}@cluster0.baf2zej.mongodb.net/netApp?retryWrites=true&w=majority`
+
+mongoose.set('strictQuery', false)
+mongoose.connect(url)
+
+const noteSchema = new mongoose.Schema({
+	content: String,
+	imporatnt: Boolean
+})
+
+noteSchema.set('toJSON', {
+	transform: (document, returnedObject) => {
+		returnedObject.id = returnedObject._id.toString()
+		delete returnedObject._id
+		delete returnedObject.__v
 	}
-]
+})
+
+const Note = mongoose.model('Note', noteSchema)
 
 app.get('/', (req, res) =>{
 	res.send(`<h1>Welcome to development fullstack </h1>`)
 })
 
 app.get('/api/notes', (req, res) => {
-	res.json(notes);
+	Note.find({}).then(notes => {
+		res.json(notes)
+	})
 })
 
 app.get('/api/notes/:id', (req, res) => {
